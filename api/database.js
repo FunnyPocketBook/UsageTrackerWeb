@@ -59,6 +59,14 @@ const Timerange = sequelize.define(
     ProgramId: {
       type: DataTypes.INTEGER,
       allowNull: false
+    },
+    NextProgramId: {
+      type: DataTypes.INTEGER,
+      allowNull: false
+    },
+    PrevProgramId: {
+      type: DataTypes.INTEGER,
+      allowNull: false
     }
   },
   {

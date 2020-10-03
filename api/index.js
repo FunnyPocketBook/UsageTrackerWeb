@@ -17,14 +17,14 @@ router.use(async (req, res, next) => {
 
 function formatData(data) {
   let result = [];
-  data.forEach(d => {
+  data.forEach((d) => {
     let program = {};
     let times = [];
     program.label = d.Name;
-    d.Timeranges.forEach(t => {
+    d.Timeranges.forEach((t) => {
       let time = {
         color: "",
-        label: ""
+        label: "",
       };
       time.starting_time = t.Start.getTime();
       time.ending_time = t.End.getTime();
@@ -41,10 +41,10 @@ async function getProgramElapsed(programId) {
     await Program.findAll({
       attributes: ["Elapsed"],
       where: {
-        ProgramId: programId
-      }
+        ProgramId: programId,
+      },
     })
-  ).map(p => p.dataValues);
+  ).map((p) => p.dataValues);
   return programs[0].Elapsed;
 }
 
@@ -53,10 +53,10 @@ async function getProgramNameFromId(programId) {
     await Program.findAll({
       attributes: ["Name"],
       where: {
-        ProgramId: programId
-      }
+        ProgramId: programId,
+      },
     })
-  ).map(p => p.dataValues);
+  ).map((p) => p.dataValues);
   return programs[0].Name;
 }
 
@@ -64,15 +64,15 @@ async function getProgramsFromUser(user) {
   const programs = (
     await Program.findAll({
       where: {
-        User: user
-      }
+        User: user,
+      },
     })
-  ).map(p => p.dataValues);
+  ).map((p) => p.dataValues);
   return programs;
 }
 
 async function getAllPrograms() {
-  const programs = (await Program.findAll()).map(p => p.dataValues);
+  const programs = (await Program.findAll()).map((p) => p.dataValues);
   return programs;
 }
 
@@ -82,16 +82,16 @@ async function getAllProgramsFromUser(user) {
       include: [
         {
           model: Timerange,
-          require: true
-        }
+          require: true,
+        },
       ],
       where: {
-        User: user
-      }
+        User: user,
+      },
     })
-  ).map(p => p.dataValues);
-  programs.forEach(p => {
-    p.Timeranges = p.Timeranges.map(t => t.dataValues);
+  ).map((p) => p.dataValues);
+  programs.forEach((p) => {
+    p.Timeranges = p.Timeranges.map((t) => t.dataValues);
   });
   return programs;
 }
@@ -105,21 +105,19 @@ async function getAllProgramsFromUserTimerange(user, start, end) {
           require: true,
           where: {
             Start: {
-              [Op.gt]: start
-            },
-            End: {
-              [Op.lt]: end
+              [Op.gt]: start,
+              [Op.lt]: end,
             }
-          }
-        }
+          },
+        },
       ],
       where: {
-        User: user
-      }
+        User: user,
+      },
     })
-  ).map(p => p.dataValues);
-  programs.forEach(p => {
-    p.Timeranges = p.Timeranges.map(t => t.dataValues);
+  ).map((p) => p.dataValues);
+  programs.forEach((p) => {
+    p.Timeranges = p.Timeranges.map((t) => t.dataValues);
   });
   return programs;
 }
@@ -128,10 +126,10 @@ async function getTimerangesFromProgramId(programId) {
   const timeranges = (
     await Timerange.findAll({
       where: {
-        ProgramId: programId
-      }
+        ProgramId: programId,
+      },
     })
-  ).map(t => t.dataValues);
+  ).map((t) => t.dataValues);
   return timeranges;
 }
 
@@ -143,18 +141,18 @@ async function getAllTimerangesFromUser(user, start, end) {
           model: Program,
           require: true,
           where: {
-            User: user
-          }
-        }
+            User: user,
+          },
+        },
       ],
       where: {
         Start: {
           [Op.gt]: start,
-          [Op.lt]: end
-        }
-      }
+          [Op.lt]: end,
+        },
+      },
     })
-  ).map(t => t.dataValues);
+  ).map((t) => t.dataValues);
   return timeranges;
 }
 
@@ -164,18 +162,26 @@ async function getAllTimeranges(start, end) {
       include: [
         {
           model: Program,
-          require: true
-        }
+          require: true,
+        },
       ],
       where: {
         Start: {
           [Op.gt]: start,
-          [Op.lt]: end
-        }
-      }
+          [Op.lt]: end,
+        },
+      },
     })
-  ).map(t => t.dataValues);
+  ).map((t) => t.dataValues);
   return timeranges;
+}
+
+async function getUsers() {
+  const users = await sequelize.query("SELECT DISTINCT User FROM Programs", null, {
+    plain: false,
+  });
+  console.log(users);
+  return users[0].map((u) => u.User);
 }
 
 async function connectDb() {
@@ -192,7 +198,11 @@ router.get("/test", async (req, res) => {
   const query = url.parse(req.url, true).query;
   console.log(query);
   try {
-    const data = await getAllProgramsFromUserTimerange(query.user, new Date(query.start_time), new Date(query.end_time));
+    const data = await getAllProgramsFromUserTimerange(
+      query.user,
+      new Date(query.start_time),
+      new Date(query.end_time)
+    );
     const formattedData = formatData(data);
     return res.json(formattedData);
   } catch (e) {
@@ -200,7 +210,18 @@ router.get("/test", async (req, res) => {
   }
 });
 
+router.get("/users", async (req, res) => {
+  console.log("get users");
+  try {
+    const data = await getUsers();
+    console.log(data);
+    return res.json(data);
+  } catch (e) {
+    res.status(500).json({ message: e.message });
+  }
+});
+
 export default {
   handler: router,
-  path: "/api"
+  path: "/api",
 };

@@ -5,8 +5,13 @@
         ProgramTrackerWeb
       </h1>
       <form @submit.prevent="vis">
-        <label for="user">User:</label>
-        <input id="user" v-model="query.user" type="text" name="user" />
+        <v-select
+          v-model="query.user"
+          :items="users"
+          class="py-4"
+          label="User"
+          dense
+        />
         <label for="start_time">Start:</label>
         <input
           id="start_time"
@@ -37,6 +42,7 @@ export default {
   data() {
     return {
       data: [],
+      users: [],
       query: {
         start_time: null,
         end_time: null,
@@ -44,9 +50,8 @@ export default {
       }
     };
   },
-  mounted() {
-    console.log("unsern boi");
-    console.log(this.$d3);
+  async mounted() {
+    this.users = (await axios.get("/api/users")).data;
   },
   methods: {
     async vis() {
